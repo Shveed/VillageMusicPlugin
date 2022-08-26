@@ -1,14 +1,24 @@
 package ru.shveed.vmp;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
+
+import java.util.logging.Logger;
 
 public class NotificationManager {
 
+    private static final Logger logger = Bukkit.getLogger();
+    private static final Server server = Bukkit.getServer();
+
     public static void printOnStartup() {
-        Bukkit.getLogger().info("Oxide clown ebaniy");
+        logger.info("Oxide clown ebaniy");
     }
 
     public static void printOnShutdown() {
-        Bukkit.getLogger().info("YOUR PLUGIN IS SHUTTING DOWN");
+        logger.info("YOUR PLUGIN IS SHUTTING DOWN");
+    }
+
+    public static void printCurrentSongPlaying(String author, String songName) {
+        server.broadcastMessage("Сейчас играет: " + author + " - " + songName);
     }
 }
