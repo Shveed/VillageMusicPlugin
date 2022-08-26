@@ -1,0 +1,6 @@
+name: Vmp
+version: '${project.version}'
+main: ru.shveed.vmp.VillageMusicPlugin
+api-version: 1.19
+commands:
+
