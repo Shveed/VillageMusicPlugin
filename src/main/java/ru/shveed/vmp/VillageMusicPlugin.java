@@ -11,7 +11,7 @@ public class VillageMusicPlugin extends JavaPlugin {
     public void onEnable() {
         NotificationManager.printOnStartup();
 
-        getCommand("").setExecutor(new CommandEventHandler());
+//        getCommand("").setExecutor(new CommandEventHandler());
 
         new BlockEventHandler(this);
         new ServerEventHandler(this);
