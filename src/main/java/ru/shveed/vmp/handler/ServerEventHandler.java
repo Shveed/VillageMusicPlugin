@@ -9,12 +9,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.protocol.HTTP;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import ru.shveed.vmp.CustomConfig;
 import ru.shveed.vmp.VillageMusicPlugin;
 import ru.shveed.vmp.model.PlayerAction;
 
@@ -25,18 +26,27 @@ import java.nio.charset.StandardCharsets;
 
 public class ServerEventHandler implements Listener {
 
-    private static final String URL = "https://exideprod.com/api/bot_exide/telegram/message/markdown";
+    private static final String CONFIG_URL_PARAM = "url";
+    private static final String CONFIG_TOKEN_PARAM = "token";
 
-    private String TOKEN = "3c4fdae9-c588-494b-91cb-3441d2241195";
+    private String URL = "";
+    private String TOKEN = "";
 
     private final HttpClient client;
 
-    public ServerEventHandler(VillageMusicPlugin plugin) {
+    public ServerEventHandler(VillageMusicPlugin plugin, FileConfiguration config) {
         client = HttpClients.createDefault();
 
-        String configToken = plugin.getConfig().getString("discord-token");
+        String configUrl = CustomConfig.get().getString(CONFIG_URL_PARAM);
+        String configToken = CustomConfig.get().getString(CONFIG_TOKEN_PARAM);
+
+        if (configUrl != null) {
+            URL = configUrl;
+            Bukkit.getLogger().warning("ExeLS: Configuration URL loaded");
+        }
         if (configToken != null) {
             TOKEN = configToken;
+            Bukkit.getLogger().warning("ExeLS: Configuration TOKEN loaded");
         }
 
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -72,7 +82,7 @@ public class ServerEventHandler implements Listener {
                     return;
             }
 
-            HttpResponse response = client.execute(initHttpPost(body));
+            HttpResponse response = client.execute(initHttpPost(URL, body));
             HttpEntity entity = response.getEntity();
 
             if (entity != null) {
@@ -84,14 +94,14 @@ public class ServerEventHandler implements Listener {
                 }
             }
 
-            Bukkit.getLogger().warning("Welcome message: Successfully send (" + playerName + ")");
+            Bukkit.getLogger().warning("ExeLS: Welcome message successfully send (" + playerName + ")");
         } catch (Exception e) {
             Bukkit.getLogger().warning(e.getMessage());
         }
     }
 
-    private HttpPost initHttpPost(StringEntity body) throws URISyntaxException {
-        HttpPost post = new HttpPost(URL);
+    private HttpPost initHttpPost(String url, StringEntity body) throws URISyntaxException {
+        HttpPost post = new HttpPost(url);
         post.setEntity(body);
         post.setURI(
                 new URIBuilder(post.getURI())
