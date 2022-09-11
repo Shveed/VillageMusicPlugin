@@ -10,7 +10,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -54,13 +56,16 @@ public class ServerEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerJoined(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        String playerName = player.getName();
+
         event.setJoinMessage(
-                "Здарова, " + event.getPlayer().getName() +
-                        "! Чувствуй себя как дома, закури калюмбасик, " +
-                        "покушай курочки KFC и бахни певчанского =)"
+                "Здарова, " + playerName + "! Чувствуй себя как дома, закури " +
+                        "калюмбасик, покушай курочки KFC и бахни певчанского =)"
         );
 
-        sendPlayerAction(event.getPlayer().getName(), PlayerAction.JOIN);
+        player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1);
+        sendPlayerAction(playerName, PlayerAction.JOIN);
     }
 
     @EventHandler
@@ -82,21 +87,31 @@ public class ServerEventHandler implements Listener {
                     return;
             }
 
+            Bukkit.getLogger().warning("ExeLS: Sending POST request...");
+
             HttpResponse response = client.execute(initHttpPost(URL, body));
             HttpEntity entity = response.getEntity();
 
-            if (entity != null) {
-                try (InputStream instream = entity.getContent()) {
-                    String responseBody = CharStreams.toString(
-                            new InputStreamReader(instream, Charsets.UTF_8)
-                    );
-                    Bukkit.getLogger().warning("Done: " + responseBody);
-                }
-            }
+            Bukkit.getLogger().warning("ExeLS: Code: " +
+                    response.getStatusLine().getStatusCode() +
+                    ";\n Message:" + response.getStatusLine().getReasonPhrase());
 
-            Bukkit.getLogger().warning("ExeLS: Welcome message successfully send (" + playerName + ")");
+            handleEntity(entity);
         } catch (Exception e) {
             Bukkit.getLogger().warning(e.getMessage());
+        }
+    }
+
+    private void handleEntity(HttpEntity entity) {
+        if (entity != null) {
+            try (InputStream instream = entity.getContent()) {
+                String responseBody = CharStreams.toString(new InputStreamReader(instream, Charsets.UTF_8));
+                Bukkit.getLogger().warning("ExeLS: Response: " + responseBody);
+            } catch (Exception e) {
+                Bukkit.getLogger().warning(e.getMessage());
+            }
+        } else {
+            Bukkit.getLogger().warning("ExeLS: Response entity is null");
         }
     }
 
